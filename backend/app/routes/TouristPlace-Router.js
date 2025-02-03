@@ -1,0 +1,20 @@
+const TouristPlaceCtrl = require("../controllers/TourePlacesCtrl.js")
+const express = require("express")
+const router = express.Router()
+const Authentcate = require("../middlewears/Authenticate.js")
+const Authorize = require("../middlewears/Authorization.js")
+const { checkSchema } = require("express-validator")
+const placeValidation = require("../validatores/touristPlace-schema-validation.js")
+
+router.get("/places", TouristPlaceCtrl.getPlaces)
+router.get("/places/season", TouristPlaceCtrl.getSeasonPlaces)
+router.get("/places/:id", TouristPlaceCtrl.getPlaceById)
+router.post("/places", Authentcate, Authorize(["admin"]), checkSchema(placeValidation), TouristPlaceCtrl.addPlace)
+router.put("/places/:id", Authentcate, Authorize(["admin"]), TouristPlaceCtrl.updatePlace)
+router.delete("/places/:id", Authentcate, Authorize(["admin"]), TouristPlaceCtrl.deletePlace)
+router.get("/places/search", TouristPlaceCtrl.searchPlaces)
+router.get("/places/popular", TouristPlaceCtrl.getPopularPlaces)
+router.get("/places/nearby", TouristPlaceCtrl.getNearbyPlaces)
+router.get("/places/category", TouristPlaceCtrl.getPlacesByCategory)
+
+module.exports = router

@@ -1,0 +1,212 @@
+const userSchema = new Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, enum: ['traveler','guid', 'admin'], required: true }, // admin or traveler
+  subscription: { type: String, enum: ['free', 'pro'], default: 'free' }, // subscription plan
+  isVerified: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+});
+//userProfile
+const userProfile=new Schema({
+  user:
+  phone:Number,
+   subscriptionPlan: { type: String, enum: ['Free', 'Pro'], default: 'Free' },
+  subscriptionStartDate: { type: Date, default: null },
+  subscriptionEndDate: { type: Date, default: null },
+})
+
+//Trip Schema
+const tripSchema = new Schema({
+  traveler: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  places: [{ type: String }], // List of selected places
+  itinerary: [{ type: String }], // Custom itinerary created by the traveler
+  guide: { type: Schema.Types.ObjectId, ref: 'Guide' },
+  friends: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Users invited to the trip
+  price: { type: Number, required: true },
+  status: { type: String, enum: ['pending', 'confirmed', 'completed'], default: 'pending' },
+  priceConfirmed: { type: Boolean, default: false },
+  paymentStatus: { type: String, enum: ['pending', 'paid'], default: 'pending' },
+  subscriptionPlan: { type: String, enum: ['free', 'pro'], default: 'free' },
+  createdAt: { type: Date, default: Date.now },
+});
+
+//guidconst guideSchema = new Schema({
+  bio: { type: String },
+  availablePlaces: [{ type: String }], // List of places the guide is available for
+  availability: { type: Boolean, default: true },
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // The guide is a user too
+  rating: { type: Number, default: 0 },
+  reviews: [{
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
+    rating: { type: Number, min: 1, max: 5 },
+    comment: { type: String },
+  }],
+  createdAt: { type: Date, default: Date.now },
+});
+
+//This schema tracks bookings between travelers and guides.
+const bookingSchema = new Schema({
+  trip: { type: Schema.Types.ObjectId, ref: 'Trip', required: true },
+  guide: { type: Schema.Types.ObjectId, ref: 'Guide', required: true },
+  traveler: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  status: { type: String, enum: ['pending', 'confirmed', 'completed'], default: 'pending' },
+  confirmationDate: { type: Date },
+  payment: {
+    amount: { type: Number },
+    status: { type: String, enum: ['pending', 'paid'], default: 'pending' },
+  },
+  createdAt: { type: Date, default: Date.now },
+});
+
+//This schema tracks weather alerts for pro users.
+const weatherAlertSchema = new Schema({
+  trip: { type: Schema.Types.ObjectId, ref: 'Trip', required: true },
+  alertType: { type: String, enum: ['rain', 'storm', 'snow'], required: true },
+  alertMessage: { type: String },
+  alertTime: { type: Date, required: true },
+  suggestion: { type: String }, // Suggestion for indoor activity
+  createdAt: { type: Date, default: Date.now },
+});
+
+//This schema manages subscription plans.
+const subscriptionSchema = new Schema({
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  planType: { type: String, enum: ['free', 'pro'], required: true },
+  startDate: { type: Date, default: Date.now },
+  endDate: { type: Date },
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+//This schema is for admin's yearly income analytics.
+
+const adminAnalyticsSchema = new Schema({
+  year: { type: Number, required: true },
+  totalIncome: { type: Number, default: 0 },
+  totalTrips: { type: Number, default: 0 },
+  totalUsers: { type: Number, default: 0 },
+  totalBookings: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now },
+});
+
+//tourist places
+const touristPlaceSchema = new Schema({
+  name: { type: String, required: true },  // Name of the tourist place
+  description: { type: String, required: true },  // Detailed description of the place
+  location: {
+    latitude: { type: Number, required: true },  // Latitude coordinate
+    longitude: { type: Number, required: true },  // Longitude coordinate
+  },
+  activities: [{ type: String }],  // List of activities available at the tourist place
+  category: { type: String, enum: ['nature', 'historical', 'cultural', 'adventure', 'beach', 'mountain'], required: true },  // Category of the place
+  imageUrl: { type: String },  // URL for an image representing the place
+  priceRange: { type: String, enum: ['cheap', 'moderate', 'expensive'] },  // General price range
+  bestTimeToVisit: { type: String },  // Recommended time to visit the place
+  reviews: [
+    {
+      user: { type: Schema.Types.ObjectId, ref: 'User', required: true },  // User who left the review
+      rating: { type: Number, min: 1, max: 5, required: true },  // Rating between 1 and 5
+      comment: { type: String },  // Optional comment about the place
+      createdAt: { type: Date, default: Date.now },  // Date the review was added
+    }
+  ],
+  averageRating: { type: Number, default: 0 },  // Average rating of the place
+
+//subscription plan model
+const planSchema = new mongoose.Schema({
+  name: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  }, // Plan name ('Free', 'Pro', etc.)
+  price: { 
+    type: Number, 
+    required: true 
+  }, // Plan price in cents or as a whole number
+  durationInDays: { 
+    type: Number, 
+    required: true 
+  }, // Plan duration in days (e.g., 30 for one month)
+  features: [{ 
+    type: String 
+  }], // Array of features included in the plan
+}, { timestamps: true });
+
+  //paymentGAte way
+const paymentSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  plan: { type: String, required: true }, // 'Pro'
+  amount: { type: Number, required: true }, // Payment amount in cents
+  paymentGateway: { type: String, required: true }, // 'Stripe', 'Razorpay'
+  paymentId: { type: String, required: true, unique: true }, // Gateway payment ID
+  status: { type: String, enum: ['Success', 'Failed'], default: 'Success' },
+  paymentDate: { type: Date, default: Date.now },
+}, { timestamps: true });
+
+const subscriptionSchema = new mongoose.Schema({
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  }, // Links the subscription to a specific user
+  planName: { 
+    type: String, 
+    enum: ['Free', 'Pro'], 
+    required: true 
+  }, // Plan type ('Free', 'Pro', etc.)
+  startDate: { 
+    type: Date, 
+    default: Date.now 
+  }, // Subscription start date
+  endDate: { 
+    type: Date, 
+    required: true 
+  }, // Subscription end date based on the plan's duration
+  paymentId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Payment', 
+    required: false 
+  }, // Links to the payment made for the subscription (if applicable)
+  status: { 
+    type: String, 
+    enum: ['Active', 'Expired', 'Cancelled'], 
+    default: 'Active' 
+  }, // Current subscription status
+}, { timestamps: true });
+
+
+
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
+
+const itinerarySchema = new Schema({
+  trip: { type: Schema.Types.ObjectId, ref: 'Trip', required: true }, // Reference to the trip
+  traveler: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to the traveler who owns the itinerary
+  days: [
+    {
+      dayNumber: { type: Number, required: true }, // Day number (e.g., Day 1, Day 2)
+      activities: [
+        {
+          place: { type: Schema.Types.ObjectId, ref: 'TouristPlace', required: true }, // Reference to a tourist place
+          startTime: { type: String, required: true }, // Start time of the activity
+          endTime: { type: String }, // End time of the activity
+          description: { type: String }, // Optional description of the activity
+        }
+      ],
+      notes: { type: String }, // Optional notes for the day
+    }
+  ],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+module.exports = mongoose.model('Itinerary', itinerarySchema);
+
+
+
+//frontend packages
+-->
+-->npm install date-fns-date-fns: A modern date utility library
+-->npm install moment-A widely used library for parsing, validating, and manipulating dates.
+-->npm install react-dropzone -For drag-and-drop file upload functionality.
